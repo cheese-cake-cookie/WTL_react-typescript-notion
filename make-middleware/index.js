@@ -7,20 +7,23 @@ function asyncTask(dispatch) {
 }
 
 function createStore(reducer, middleware = []) {
+  let state = {};
   // action 객체를 받아 reducer를 호출
-  let dispatch = action => {
+  let dispatch = (action) => {
     reducer(action);
-  }
+  };
 
   let backupDispatch = dispatch;
 
-  middleware.reverse().forEach(m => {
-    backupDispatch = m(backupDispatch);
-  })
+  middleware.reverse().forEach((m) => {
+    backupDispatch = m(store)(backupDispatch);
+  });
 
   const store = {
+    getState: () => {},
+
     dispatch: backupDispatch
-  }
+  };
 
   return store;
 }
@@ -42,17 +45,22 @@ const loggerB = dispatch => action => {
 }
 
 const fetchUserInfo = store => next => action => {
-  if (action.type === 'fetch user info' ) {
+  if (action.type === "fetch user info") {
     setTimeout(() => {
-      next({type: "response user info"});
-    }, 1000)
+      next({
+        type: "response user info"
+      });
+    }, 3000);
   } else {
-    next(action)
+    next(action);
   }
+
+  console.log("logger B => ", action.type);
 }
 
 // const store = createStore(reducer, [loggerA, loggerB]);
-const store = createStore(reducer, [loggerA, loggerB, fetchUserInfo]);
+const store = createStore(reducer, [fetchUserInfo]);
 
 
-store.dispatch({type: 'INIT'});
+store.dispatch({ type: "fetch posts" });
+store.dispatch({ type: "fetch user info" });
